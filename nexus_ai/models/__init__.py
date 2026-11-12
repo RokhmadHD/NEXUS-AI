@@ -1,7 +1,6 @@
-"""NEXUS-AI model components."""
-from .nexus_hsr import NexusHSR
+"""Public model exports for NEXUS-AI."""
 
-__all__ = ["NexusHSR"]
+from .nexus_hsr import NexusHSR
 from .transformer_baseline import TransformerBaseline
 
 __all__ = ["NexusHSR", "TransformerBaseline"]
