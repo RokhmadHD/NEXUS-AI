@@ -18,4 +18,5 @@ datasets/synthetic/*
 !datasets/synthetic/.gitkeep
 experiments/*
 !experiments/.gitkeep
+!experiments/*.md
 nexus_ai.egg-info/
