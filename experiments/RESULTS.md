@@ -155,3 +155,18 @@ optimizer/data order/update budget for both models, 3 seeds x 2 models,
    heavy overfitting after epoch 1, and no ablation of aux losses at v0.3
    yet. Run the v0.3 ablation and dropout runs before treating this as
    established.
+
+## Compute cost observation (EXP-005, Kaggle T4)
+
+Wall-clock per full 10-epoch run: NEXUS-HSR ~170-178 s vs baseline ~120-123 s
+(~45% slower for NEXUS). Both models are parameter-matched, but the baseline
+spends its extra parameters on a wider FFN (large, GPU-friendly matmuls)
+while NEXUS spends them on additional small sequential operations: the
+symbolic slot attention, the 2-iteration GRUCell loop with per-iteration
+reshapes, and element-wise gated fusion. At this tiny scale (batch 16,
+sequence ~50), kernel-launch and memory overheads dominate for those modules.
+
+Trade-off summary: NEXUS pays ~45% extra compute for the state-tracking
+capability that drives the EXP-005 accuracy gap. At larger scale this raises
+the official follow-up question of accuracy-per-FLOP, and makes the GRUCell
+loop (e.g. a batched cuDNN GRU) the first optimization target.
