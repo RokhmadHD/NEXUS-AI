@@ -1,0 +1,41 @@
+experiment:
+  id: EXP-003A
+  name: parameter_matched_transformer_baseline
+  status: implementation
+  seed: 42
+
+comparison:
+  reference_model: NEXUS-HSR-Tiny
+  baseline_model: Transformer-Baseline
+  parameter_match_tolerance_percent: 0.1
+  same_vocab_size: true
+  same_context_length: true
+  same_embedding_dim: true
+  same_attention_heads: true
+  same_dropout: true
+
+nexus_hsr:
+  vocab_size: 2048
+  context_length: 256
+  embedding_dim: 128
+  num_heads: 4
+  encoder_layers: 2
+  decoder_layers: 2
+  ffn_dim: 512
+  latent_iterations: 2
+  symbolic_slots: 16
+  dropout: 0.0
+
+transformer_baseline:
+  vocab_size: 2048
+  context_length: 256
+  embedding_dim: 128
+  num_heads: 4
+  num_layers: 4
+  ffn_dim: 721
+  dropout: 0.0
+
+notes:
+  - "The baseline uses a wider feed-forward dimension to match total trainable parameters."
+  - "Parameter matching must be verified by scripts/compare_parameter_counts.py in the target runtime."
+  - "This experiment is an architectural control, not a training or reasoning result."
