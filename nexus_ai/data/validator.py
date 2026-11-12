@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from nexus_ai.data.generator import SCHEMA_VERSION
+from nexus_ai.data.generator import MAX_EVENTS, SCHEMA_VERSION
 
 
 def validate_record(record: dict[str, Any]) -> list[str]:
@@ -35,33 +35,43 @@ def validate_record(record: dict[str, Any]) -> list[str]:
     if not isinstance(target, dict):
         return errors + ["symbolic_target must be an object"]
     events = target.get("events")
-    if not isinstance(events, list) or len(events) != 1:
-        return errors + ["expected exactly one event"]
+    if not isinstance(events, list) or not 1 <= len(events) <= MAX_EVENTS:
+        return errors + [f"expected 1 to {MAX_EVENTS} events"]
 
-    event = events[0]
-    giver, receiver = event.get("source"), event.get("target")
-    amount = event.get("quantity")
     before, after = record["state_before"], record["state_after"]
     if not isinstance(before, dict) or not isinstance(after, dict):
         return errors + ["states must be objects"]
-    if not isinstance(amount, int) or isinstance(amount, bool) or amount <= 0:
-        return errors + ["event quantity must be a positive integer"]
-    if giver == receiver or giver not in before or receiver not in before:
-        return errors + ["event participants are invalid or missing"]
     if set(before) != set(after):
         errors.append("state keys differ before and after")
     if not all(isinstance(v, int) and not isinstance(v, bool) and v >= 0
                for v in list(before.values()) + list(after.values())):
-        return errors + ["state quantities must be non-negative integers"]
+        errors.append("state quantities must be non-negative integers")
     if errors:
         return errors
-    if before[giver] < amount:
-        errors.append("transfer exceeds source quantity")
-    expected = dict(before)
-    expected[giver] -= amount
-    expected[receiver] += amount
-    if expected != after:
-        errors.append("state_after does not match simulated transfer")
+
+    # Simulate every event sequentially and compare with state_after.
+    state = dict(before)
+    for index, event in enumerate(events):
+        giver, receiver = event.get("source"), event.get("target")
+        amount = event.get("quantity")
+        if not isinstance(amount, int) or isinstance(amount, bool) or amount <= 0:
+            errors.append(f"event {index}: quantity must be a positive integer")
+            continue
+        if not isinstance(giver, str) or not isinstance(receiver, str) or giver == receiver:
+            errors.append(f"event {index}: participants are invalid")
+            continue
+        if giver not in state or receiver not in state:
+            errors.append(f"event {index}: participants missing from state")
+            continue
+        if state[giver] < amount:
+            errors.append(f"event {index}: transfer exceeds source quantity")
+            continue
+        state[giver] -= amount
+        state[receiver] += amount
+    if errors:
+        return errors
+    if state != after:
+        errors.append("state_after does not match simulated transfers")
     return errors
 
 

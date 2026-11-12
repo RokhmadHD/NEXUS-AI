@@ -1,5 +1,7 @@
 import json
+
 import pytest
+
 from nexus_ai.data.generator import generate_dataset, generate_sample
 from nexus_ai.data.validator import validate_jsonl, validate_record
 
@@ -41,3 +43,37 @@ def test_dataset_generation_and_validation(tmp_path):
 def test_invalid_count_is_rejected(tmp_path):
     with pytest.raises(ValueError):
         generate_dataset(tmp_path, count=2)
+
+
+def test_multi_event_chain_is_simulated_correctly():
+    record = generate_sample(11, seed=77, max_events=4)
+    events = record["symbolic_target"]["events"]
+    assert 1 <= len(events) <= 4
+    state = dict(record["state_before"])
+    for event in events:
+        assert state[event["source"]] >= event["quantity"] > 0
+        state[event["source"]] -= event["quantity"]
+        state[event["target"]] += event["quantity"]
+    assert state == record["state_after"]
+    assert validate_record(record) == []
+
+
+def test_validator_rejects_broken_multi_event_chain():
+    record = generate_sample(12, seed=77, max_events=3)
+    assert len(record["symbolic_target"]["events"]) > 1
+    first_giver = record["symbolic_target"]["events"][0]["source"]
+    record["state_after"][first_giver] += 1
+    assert any("state_after" in e for e in validate_record(record))
+
+
+def test_multi_event_chain_is_deterministic():
+    first = generate_sample(5, seed=31, max_events=3)
+    second = generate_sample(5, seed=31, max_events=3)
+    assert first == second
+
+
+def test_invalid_max_events_is_rejected(tmp_path):
+    with pytest.raises(ValueError):
+        generate_sample(0, max_events=0)
+    with pytest.raises(ValueError):
+        generate_dataset(tmp_path, count=10, max_events=99)
