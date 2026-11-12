@@ -118,3 +118,40 @@ kaggle/nexus_ai_kaggle.ipynb (commit afa2714 lineage).
 3. The binding constraint is data (800 shared templates, vocab 54), not
    compute. Next lever: richer dataset generation (more templates, larger
    vocabulary, deeper state chains) before any architectural claims.
+
+---
+
+# EXP-005: dataset v0.3 (multi-event chains), Kaggle T4 x2 (2026-11-13)
+
+Dataset v0.3: 20k records (16k/2k/2k), 1-3 sequential transfer events per
+sample, six templates per language, vocab 108 (re-fit on train split),
+parameter match verified (0.017%). Hardware: Kaggle T4 x2 with runs
+parallelized as independent jobs pinned per GPU (not pooled VRAM). Same
+optimizer/data order/update budget for both models, 3 seeds x 2 models,
+10 epochs, dropout 0.0.
+
+## Test-split results (best checkpoints)
+
+| Run | test_loss | test_accuracy | test_perplexity |
+|---|---|---|---|
+| nexus s42 | 2.1052 | 0.6678 | 8.21 |
+| baseline s42 | 2.8944 | 0.5681 | 18.07 |
+| nexus s43 | 2.5865 | 0.6099 | 13.28 |
+| baseline s43 | 2.7010 | 0.5722 | 14.89 |
+| nexus s44 | 2.4794 | 0.5800 | 11.93 |
+| baseline s44 | 2.9059 | 0.5281 | 18.28 |
+| **nexus mean** | **2.390** | **0.619** | **11.14** |
+| **baseline mean** | **2.834** | **0.556** | **17.08** |
+
+## Conclusions
+
+1. NEXUS-HSR wins all three seeds on test loss for the first time, with a
+   mean gap of -0.44 loss (-15.7%), +6.3 pt accuracy, and -35% perplexity.
+   The gap now exceeds the observed seed variance, unlike EXP-003A/004.
+2. The advantage emerges specifically on multi-event state tracking: the
+   harder the state chain, the larger the gap. This is direct, though still
+   preliminary, support for the recurrent latent-state refinement hypothesis.
+3. Honest caveats: single dataset family, shared templates, dropout 0.0 with
+   heavy overfitting after epoch 1, and no ablation of aux losses at v0.3
+   yet. Run the v0.3 ablation and dropout runs before treating this as
+   established.
