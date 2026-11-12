@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+import os
 import random
 from pathlib import Path
 
@@ -57,9 +58,15 @@ class Trainer:
         warmup_steps: int = 0,
         seed: int = 42,
         device: str = "cpu",
+        deterministic: bool = False,
         **loss_weights,
     ):
         self.device = torch.device(device)
+        if deterministic:
+            # CUDA runs are not bitwise reproducible by default (nondeterministic
+            # kernels/atomics); this flag trades speed for repeatable metrics.
+            torch.use_deterministic_algorithms(True, warn_only=True)
+            os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
         self.model = model.to(self.device)
         self.max_grad_norm = max_grad_norm
         self.ignore_index = DEFAULT_IGNORE_INDEX
