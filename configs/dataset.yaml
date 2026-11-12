@@ -1,0 +1,7 @@
+dataset:
+  schema_version: nexus.synthetic.v0.1
+  output_dir: datasets/synthetic/v0.1
+  count: 1000
+  seed: 42
+  language: en
+  split_strategy: disjoint_entity_and_item_pools
