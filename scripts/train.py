@@ -52,6 +52,10 @@ def main() -> None:
     parser.add_argument("--warmup-ratio", type=float, default=0.05)
     parser.add_argument("--max-grad-norm", type=float, default=1.0)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--dropout", type=float, default=None,
+                        help="Override model dropout (default: config 0.0).")
+    parser.add_argument("--loss-weights-json", default=None,
+                        help="JSON dict overriding TotalLoss weights (nexus only).")
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--max-length", type=int, default=256)
@@ -65,6 +69,15 @@ def main() -> None:
     tokenizer = VocabularyTokenizer.load(args.tokenizer)
     config = dict(CONFIGS[args.model])
     config["vocab_size"] = tokenizer.vocab_size
+    if args.dropout is not None:
+        if args.dropout < 0 or args.dropout > 1:
+            raise SystemExit("--dropout must be in [0, 1]")
+        config["dropout"] = args.dropout
+    loss_weights = {}
+    if args.loss_weights_json:
+        if args.model != "nexus":
+            raise SystemExit("--loss-weights-json applies only to the nexus model")
+        loss_weights = json.loads(args.loss_weights_json)
 
     train_loader = create_dataloader(
         args.train, tokenizer, batch_size=args.batch_size,
@@ -87,6 +100,7 @@ def main() -> None:
         warmup_steps=max(1, int(steps_per_epoch * args.warmup_ratio * args.epochs)),
         seed=args.seed,
         device=args.device,
+        **loss_weights,
     )
 
     trainer.fit(
@@ -105,6 +119,8 @@ def main() -> None:
         "seed": args.seed,
         "device": str(trainer.device),
         "epochs": args.epochs,
+        "dropout": config["dropout"],
+        "loss_weights": loss_weights,
         "final_validation": final,
     }
     with open(f"{args.output}/summary.json", "w", encoding="utf-8") as stream:
