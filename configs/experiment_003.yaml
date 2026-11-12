@@ -35,7 +35,9 @@ transformer_baseline:
   embedding_dim: 128
   num_heads: 4
   num_layers: 4
-  ffn_dim: 721
+  # Matched to NEXUS-HSR at vocab_size=54 (tokenizer v0.1); re-run
+  # scripts/compare_parameter_counts.py if any dimension changes.
+  ffn_dim: 723
   dropout: 0.0
 
 notes:

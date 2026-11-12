@@ -16,3 +16,6 @@ datasets/processed/*
 !datasets/processed/.gitkeep
 datasets/synthetic/*
 !datasets/synthetic/.gitkeep
+experiments/*
+!experiments/.gitkeep
+nexus_ai.egg-info/
