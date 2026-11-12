@@ -20,3 +20,5 @@ experiments/*
 !experiments/.gitkeep
 !experiments/*.md
 nexus_ai.egg-info/
+nexus_ai_kaggle_results.zip
+*.zip
