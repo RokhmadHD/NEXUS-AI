@@ -1,4 +1,5 @@
 """Parameter-matched causal Transformer baseline for NEXUS-HSR experiments."""
+import torch
 from torch import nn
 
 
@@ -47,8 +48,7 @@ class TransformerBaseline(nn.Module):
     def forward(self, input_ids):
         if input_ids.ndim != 2:
             raise ValueError("input_ids must have shape [batch, sequence]")
-        batch_size, sequence_length = input_ids.shape
-        del batch_size
+        _, sequence_length = input_ids.shape
         if sequence_length > self.context_length:
             raise ValueError(
                 f"sequence length exceeds context_length={self.context_length}"
@@ -75,6 +75,3 @@ class TransformerBaseline(nn.Module):
             if not trainable_only or parameter.requires_grad
         )
 
-
-# torch is imported after the class docstring to keep the public module simple.
-import torch
