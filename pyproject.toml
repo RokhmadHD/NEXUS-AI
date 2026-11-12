@@ -18,6 +18,11 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["nexus_ai", "nexus_ai.*"]
+exclude = ["tests", "tests.*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
