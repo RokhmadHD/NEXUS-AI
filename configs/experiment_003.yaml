@@ -14,8 +14,11 @@ comparison:
   same_attention_heads: true
   same_dropout: true
 
+# This value matches the currently generated v0.1 tokenizer.
+# Re-derive it from VocabularyTokenizer.load(...).vocab_size if the
+# training corpus or tokenizer is regenerated.
 nexus_hsr:
-  vocab_size: 2048
+  vocab_size: 54
   context_length: 256
   embedding_dim: 128
   num_heads: 4
@@ -27,7 +30,7 @@ nexus_hsr:
   dropout: 0.0
 
 transformer_baseline:
-  vocab_size: 2048
+  vocab_size: 54
   context_length: 256
   embedding_dim: 128
   num_heads: 4
@@ -37,5 +40,6 @@ transformer_baseline:
 
 notes:
   - "The baseline uses a wider feed-forward dimension to match total trainable parameters."
-  - "Parameter matching must be verified by scripts/compare_parameter_counts.py in the target runtime."
+  - "Parameter matching must be re-verified for the active vocabulary and model configuration."
+  - "The active v0.1 tokenizer currently contains 54 tokens; do not use the generic 2048-token default for this run."
   - "This experiment is an architectural control, not a training or reasoning result."
