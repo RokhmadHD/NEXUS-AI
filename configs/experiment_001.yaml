@@ -1,0 +1,8 @@
+experiment:
+  id: exp001
+  name: initial_smoke_test
+  description: Initial small-scale architecture validation
+  model_config: configs/model.yaml
+  training_config: configs/training.yaml
+  target_parameters: 2000000
+  status: planned

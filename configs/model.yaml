@@ -1,0 +1,13 @@
+model:
+  name: NEXUS-AI
+  architecture: hybrid_state_reasoning
+  vocab_size: 8192
+  context_length: 512
+  embedding_dim: 384
+  encoder_layers: 4
+  attention_heads: 6
+  ffn_dim: 1536
+  latent_iterations: 3
+  symbolic_slots: 32
+  symbolic_feature_dim: 128
+  decoder_layers: 4
