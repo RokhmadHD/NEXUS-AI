@@ -170,3 +170,40 @@ Trade-off summary: NEXUS pays ~45% extra compute for the state-tracking
 capability that drives the EXP-005 accuracy gap. At larger scale this raises
 the official follow-up question of accuracy-per-FLOP, and makes the GRUCell
 loop (e.g. a batched cuDNN GRU) the first optimization target.
+
+---
+
+# EXP-006: v0.3 ablation and dropout runs (Kaggle T4 x2, 2026-11-13)
+
+Same setup as EXP-005 (v0.3 dataset, 20k records, vocab 108, 3 seeds,
+10 epochs) plus: NEXUS-HSR with aux losses zeroed (LM-only) and both
+models at dropout 0.1.
+
+## Mean test loss per variant (3 seeds each)
+
+| Variant | Mean ± std | Notes |
+|---|---|---|
+| **NEXUS dropout 0.1** | **2.177 ± 0.11** | best overall; wins vs every baseline variant |
+| NEXUS full | 2.579 ± 0.30 | high run-to-run variance |
+| NEXUS LM-only | 2.727 ± 0.30 | aux losses removed |
+| Baseline full | 2.643 ± 0.02 | very stable across seeds |
+| Baseline dropout 0.1 | 2.743 ± 0.02 | dropout hurts the baseline |
+
+## Findings
+
+1. Dropout 0.1 helps NEXUS (2.58 -> 2.18) but hurts the baseline
+   (2.64 -> 2.74). NEXUS has more internal pathways (slots, latent, fusion)
+   to overfit; the underfitting-prone baseline is penalized by regularization.
+   Under regularization the architecture gap widens to -0.47 loss and ~+10 pts
+   accuracy.
+2. The v0.2 ablation conclusion reverses on v0.3: LM-only (2.727) is worse
+   than full NEXUS (2.579), so the auxiliary losses now contribute
+   positively. Their effect appears task-difficulty dependent: neutral-to-
+   harmful on single-event data, helpful on multi-event state chains.
+3. Methodological caveat: identical seeds/configs produce different results
+   across GPU sessions (e.g. nexus_s42: 2.105 in EXP-005 vs 2.569 here) due
+   to CUDA nondeterminism (non-deterministic kernels/atomics). Part of the
+   measured seed variance is GPU noise. Future official runs should set
+   torch.use_deterministic_algorithms(True) where feasible.
+4. The provenance per_model_means aggregates all nexus variants into one
+   number and is not suitable for comparisons; use the per-variant table.
